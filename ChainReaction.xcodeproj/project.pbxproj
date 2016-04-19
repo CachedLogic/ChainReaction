@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4C55F2D31CC6268600B9AEBD /* ChainReaction.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C55F2D21CC6268600B9AEBD /* ChainReaction.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		4C55F2D31CC6268600B9AEBD /* CR.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C55F2D21CC6268600B9AEBD /* CR.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		4C55F2DA1CC6268600B9AEBD /* ChainReaction.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C55F2CF1CC6268600B9AEBD /* ChainReaction.framework */; };
 		4C55F2DF1CC6268600B9AEBD /* ChainReactionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C55F2DE1CC6268600B9AEBD /* ChainReactionTests.swift */; };
 		4C55F2EA1CC62AFB00B9AEBD /* ChainReaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C55F2E91CC62AFB00B9AEBD /* ChainReaction.swift */; };
@@ -28,7 +28,7 @@
 
 /* Begin PBXFileReference section */
 		4C55F2CF1CC6268600B9AEBD /* ChainReaction.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ChainReaction.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		4C55F2D21CC6268600B9AEBD /* ChainReaction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChainReaction.h; sourceTree = "<group>"; };
+		4C55F2D21CC6268600B9AEBD /* CR.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CR.h; sourceTree = "<group>"; };
 		4C55F2D41CC6268600B9AEBD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4C55F2D91CC6268600B9AEBD /* ChainReactionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChainReactionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C55F2DE1CC6268600B9AEBD /* ChainReactionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChainReactionTests.swift; sourceTree = "<group>"; };
@@ -82,7 +82,7 @@
 		4C55F2D11CC6268600B9AEBD /* ChainReaction */ = {
 			isa = PBXGroup;
 			children = (
-				4C55F2D21CC6268600B9AEBD /* ChainReaction.h */,
+				4C55F2D21CC6268600B9AEBD /* CR.h */,
 				4C55F2E91CC62AFB00B9AEBD /* ChainReaction.swift */,
 				4C55F2D41CC6268600B9AEBD /* Info.plist */,
 			);
@@ -105,7 +105,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4C55F2D31CC6268600B9AEBD /* ChainReaction.h in Headers */,
+				4C55F2D31CC6268600B9AEBD /* CR.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
