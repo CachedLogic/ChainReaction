@@ -14,6 +14,7 @@
 		4C9117C71CC65F9900DC06CE /* Nimble.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C9117C51CC65F9900DC06CE /* Nimble.framework */; };
 		4C9117C81CC65F9900DC06CE /* Quick.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C9117C61CC65F9900DC06CE /* Quick.framework */; };
 		4C9117C91CC663E000DC06CE /* ChainReaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C55F2E91CC62AFB00B9AEBD /* ChainReaction.swift */; };
+		4C9117CE1CC6711800DC06CE /* ChainReaction.swift in Headers */ = {isa = PBXBuildFile; fileRef = 4C55F2E91CC62AFB00B9AEBD /* ChainReaction.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -106,6 +107,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4C55F2D31CC6268600B9AEBD /* CR.h in Headers */,
+				4C9117CE1CC6711800DC06CE /* ChainReaction.swift in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
