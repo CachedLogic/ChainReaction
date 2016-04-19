@@ -47,6 +47,10 @@ public class ChainReaction {
     
     private var particles = [Particle]()
     
+    public init() {
+        
+    }
+    
     public func addParticle(activationBehaviour: ((ErrorType?) -> ()) -> (), failureConditions: ((ErrorType) -> (Bool))? = nil) {
         let lastParticle = particles.last
         var failureConditions = failureConditions
