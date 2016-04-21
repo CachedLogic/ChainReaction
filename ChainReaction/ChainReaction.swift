@@ -51,6 +51,18 @@ public class ChainReaction {
         
     }
     
+    // MARK: - Add Particle
+    
+    /**
+     
+     Adds one particle to your reaction chain.
+     
+     This method adds one particle to your reaction chain. It will be invoked after all previously added elements executed with success. You can start the chain reaction events by invoking `initiateReaction(_:_:)` method.
+     
+     - parameters:
+        - ((ErrorType?) -> ()) -> (): activationBehaviour Main event method for the particle.
+     */
+    
     public func addParticle(activationBehaviour: ((ErrorType?) -> ()) -> (), failureConditions: ((ErrorType) -> (Bool))? = nil) {
         let lastParticle = particles.last
         var failureConditions = failureConditions
@@ -67,6 +79,25 @@ public class ChainReaction {
             lastParticle.nextParticle = particle
         }
     }
+    
+    // MARK: - Add Compound
+    
+    public func addCompound(compoundReaction: ChainReaction) {
+        
+    }
+    
+    // MARK: - Initiate Reaction
+    
+    /**
+     
+     Initiates created chain reaction.
+     
+     This method initiates created chain reaction. Particles are treated as separete invocations. Compounds, comprised of particles, will be executed as a group of events, and the output result will be the accumulated results of all independent particles.
+     
+     - parameters:
+        - () -> (): finishedHandler Success handler for whole chain reaction
+        - (ErrorType?) -> (): failureHandler: Failure handler for whole chain reaction
+    */
     
     public func initiateReaction(finishedHandler: () -> (), failureHandler: (ErrorType?) -> ()) {
         particles.first?.activate(finishedHandler, failureHandler: failureHandler)
