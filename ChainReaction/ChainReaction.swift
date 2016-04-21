@@ -5,20 +5,54 @@
 //  Created by Maciej Stramski on 29/03/16.
 //  Copyright © 2016 Cached Logic. All rights reserved.
 //
+import Foundation
+
+private protocol Chainable {
+    var nextChainable: Chainable? { get set }
+    func activate(finishedHandler: () -> (), failureHandler: (ErrorType?) -> ())
+}
 
 public class ChainReaction {
     
-    private class Particle {
-        var nextParticle: Particle?
+    private class Compound: Chainable {
+        var nextChainable: Chainable?
+        
+        private let particles: [Particle]
+        
+        init(particles: [Particle]) {
+            self.particles = particles
+        }
+        
+        func activate(finishedHandler: () -> (), failureHandler: (ErrorType?) -> ()) {
+            var errors = [ErrorType?]()
+            
+            let particleFinishedHandler: (ErrorType?) -> () = { (error) -> () in
+                // TODO: Implement finished handler
+            }
+            
+            for particle in particles {
+                dispatch_async(dispatch_get_main_queue()) {
+                    particle.activate({ 
+                        particleFinishedHandler(nil)
+                    }, failureHandler: { (error) in
+                        particleFinishedHandler(error)
+                    })
+                }
+            }
+        }
+    }
+    
+    private class Particle: Chainable {
+        var nextChainable: Chainable?
         
         let activationBehaviour: ((ErrorType?) -> ()) -> ()
         let failureConditions: ((ErrorType) -> (Bool))
         
-        init(activationBehaviour: ((ErrorType?) -> ()) -> (), failureConditions: ((ErrorType) -> (Bool)), nextParticle: Particle? = nil) {
+        init(activationBehaviour: ((ErrorType?) -> ()) -> (), failureConditions: ((ErrorType) -> (Bool)), nextChainable: Chainable? = nil) {
             self.activationBehaviour = activationBehaviour
             self.failureConditions = failureConditions
             
-            self.nextParticle = nextParticle
+            self.nextChainable = nextChainable
         }
         
         func activate(finishedHandler: () -> (), failureHandler: (ErrorType?) -> ()) {
@@ -36,7 +70,7 @@ public class ChainReaction {
         }
         
         private func activateNext(finishedHandler: () -> (), failureHandler: (ErrorType?) -> ()) {
-            guard let reaction = self.nextParticle else {
+            guard let reaction = self.nextChainable else {
                 finishedHandler()
                 return
             }
