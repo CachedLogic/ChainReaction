@@ -12,31 +12,45 @@ private protocol Chainable {
     func activate(finishedHandler: () -> (), failureHandler: (ErrorType?) -> ())
 }
 
+enum ChainableError: ErrorType {
+    case CompoundError([ErrorType])
+}
+
 public class ChainReaction {
     
     private class Compound: Chainable {
         var nextChainable: Chainable?
         
-        private let particles: [Particle]
+        private let chainables: [Chainable]
         
-        init(particles: [Particle]) {
-            self.particles = particles
+        init(chainables: [Chainable]) {
+            self.chainables = chainables
         }
         
         func activate(finishedHandler: () -> (), failureHandler: (ErrorType?) -> ()) {
-            var errors = [ErrorType?]()
+            var errors = [ErrorType]()
             
-            let particleFinishedHandler: (ErrorType?) -> () = { (error) -> () in
-                // TODO: Implement finished handler
+            let dispatchGroup = dispatch_group_create()
+            
+            for chainable in self.chainables {
+                dispatch_group_enter(dispatchGroup)
+                
+                chainable.activate({
+                    dispatch_group_leave(dispatchGroup)
+                }, failureHandler: { (error) in
+                    if error != nil {
+                        errors.append(error!)
+                    }
+                    
+                    dispatch_group_leave(dispatchGroup)
+                })
             }
             
-            for particle in particles {
-                dispatch_async(dispatch_get_main_queue()) {
-                    particle.activate({ 
-                        particleFinishedHandler(nil)
-                    }, failureHandler: { (error) in
-                        particleFinishedHandler(error)
-                    })
+            dispatch_group_notify(dispatchGroup, dispatch_get_main_queue()) { 
+                if errors.count > 0 {
+                    failureHandler(ChainableError.CompoundError(errors))
+                } else {
+                    finishedHandler()
                 }
             }
         }
@@ -74,18 +88,28 @@ public class ChainReaction {
                 finishedHandler()
                 return
             }
-            
+        
             reaction.activate(finishedHandler, failureHandler: failureHandler)
         }
     }
     
-    private var particles = [Particle]()
+    private var chainables = [Chainable]()
     
     public init() {
         
     }
     
     // MARK: - Add Particle
+    
+    private func addChainable(chainable: Chainable) {
+        self.chainables.append(chainable)
+        
+        guard var lastChainable = self.chainables.last else {
+            return
+        }
+        
+        lastChainable.nextChainable = chainable
+    }
     
     /**
      
@@ -98,7 +122,6 @@ public class ChainReaction {
      */
     
     public func addParticle(activationBehaviour: ((ErrorType?) -> ()) -> (), failureConditions: ((ErrorType) -> (Bool))? = nil) {
-        let lastParticle = particles.last
         var failureConditions = failureConditions
         
         if failureConditions == nil {
@@ -107,17 +130,15 @@ public class ChainReaction {
         
         let particle = Particle(activationBehaviour: activationBehaviour, failureConditions: failureConditions!)
         
-        particles.append(particle)
-        
-        if let lastParticle = lastParticle {
-            lastParticle.nextParticle = particle
-        }
+        self.addChainable(particle)
     }
     
     // MARK: - Add Compound
     
     public func addCompound(compoundReaction: ChainReaction) {
+        let compound = Compound(chainables: compoundReaction.chainables)
         
+        self.addChainable(compound)
     }
     
     // MARK: - Initiate Reaction
@@ -134,6 +155,6 @@ public class ChainReaction {
     */
     
     public func initiateReaction(finishedHandler: () -> (), failureHandler: (ErrorType?) -> ()) {
-        particles.first?.activate(finishedHandler, failureHandler: failureHandler)
+        self.chainables.first?.activate(finishedHandler, failureHandler: failureHandler)
     }
 }
