@@ -14,6 +14,7 @@ private protocol Chainable {
 
 enum ChainableError: ErrorType {
     case CompoundError([ErrorType])
+    case RecurrenceError
 }
 
 public class ChainReaction {
@@ -46,13 +47,22 @@ public class ChainReaction {
                 })
             }
             
-            dispatch_group_notify(dispatchGroup, dispatch_get_main_queue()) { 
+            dispatch_group_notify(dispatchGroup, dispatch_get_main_queue()) {
                 if errors.count > 0 {
                     failureHandler(ChainableError.CompoundError(errors))
                 } else {
-                    finishedHandler()
+                    self.activateNext(finishedHandler, failureHandler: failureHandler)
                 }
             }
+        }
+        
+        private func activateNext(finishedHandler: () -> (), failureHandler: (ErrorType?) -> ()) {
+            guard let chainable = self.nextChainable else {
+                finishedHandler()
+                return
+            }
+            
+            chainable.activate(finishedHandler, failureHandler: failureHandler)
         }
     }
     
@@ -84,12 +94,12 @@ public class ChainReaction {
         }
         
         private func activateNext(finishedHandler: () -> (), failureHandler: (ErrorType?) -> ()) {
-            guard let reaction = self.nextChainable else {
+            guard let chainable = self.nextChainable else {
                 finishedHandler()
                 return
             }
         
-            reaction.activate(finishedHandler, failureHandler: failureHandler)
+            chainable.activate(finishedHandler, failureHandler: failureHandler)
         }
     }
     
@@ -102,13 +112,11 @@ public class ChainReaction {
     // MARK: - Add Particle
     
     private func addChainable(chainable: Chainable) {
+        var lastChainable = self.chainables.last
+        
         self.chainables.append(chainable)
         
-        guard var lastChainable = self.chainables.last else {
-            return
-        }
-        
-        lastChainable.nextChainable = chainable
+        lastChainable?.nextChainable = chainable
     }
     
     /**
