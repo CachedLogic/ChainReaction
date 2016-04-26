@@ -15,7 +15,7 @@ class ChainReactionTests: QuickSpec {
     private var counter = 0
     
     private func successfulTestMethod(completionHandler: ((NSError?) -> ())) {
-        print("Successful test method : \(counter)")
+        print("\n\nSuccessful test method : \(counter)\n\n")
         
         counter += 1
         
@@ -23,11 +23,11 @@ class ChainReactionTests: QuickSpec {
     }
 
     private func successfulAsyncTestMethod(completionHandler: ((NSError?) -> ())) {
-        let randomValue = Double(random() % 100) / 2.0
+        let randomValue = Double(random() % 10) / 10.0
         let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(randomValue * Double(NSEC_PER_SEC)))
 
         dispatch_after(delayTime, dispatch_get_main_queue()) {
-            print("Successful async test method : \(self.counter)")
+            print("\n\nSuccessful async test method : \(self.counter)\n\n")
             
             self.counter += 1
             
@@ -41,13 +41,19 @@ class ChainReactionTests: QuickSpec {
             it("executes chain reaction") {
                 let reaction = ChainReaction()
                 
-                reaction.addParticle(self.successfulTestMethod)
+                reaction.addParticle(self.successfulAsyncTestMethod)
+                
+                var success: Bool?
                 
                 reaction.initiateReaction({ 
-                    print("Success")
+                    print("\n\nSuccess\n\n")
+                    success = true
                 }, failureHandler: { (error) in
-                    fail("Test Method should be always successful but it gave error:\n\n\(error)\n\n")
+                    fail("\n\nTest Method should be always successful but it gave error:\n\n\(error)\n\n")
+                    success = false
                 })
+                
+                expect(success).toEventually(beTrue(), timeout: 30)
             }
         }
         
@@ -55,7 +61,8 @@ class ChainReactionTests: QuickSpec {
             it("executes compund chain reaction") {
                 let reaction = ChainReaction()
                 
-                reaction.addParticle(self.successfulTestMethod)
+                reaction.addParticle(self.successfulAsyncTestMethod)
+                reaction.addParticle(self.successfulAsyncTestMethod)
                 
                 let compoundReaction = ChainReaction()
                 
@@ -64,11 +71,17 @@ class ChainReactionTests: QuickSpec {
                 
                 reaction.addCompound(compoundReaction)
                 
+                var success: Bool?
+                
                 reaction.initiateReaction({ 
-                    // Success
+                    print("\n\nSuccess\n\n")
+                    success = true
                 }, failureHandler: { (error) in
-                    fail("Test Method should be always successful but it gave error:\n\n\(error)\n\n")
+                    success = false
+                    fail("\n\nTest Method should be always successful but it gave error:\n\n\(error)\n\n")
                 })
+                
+                expect(success).toEventually(beTrue(), timeout: 30)
             }
         }
     }
