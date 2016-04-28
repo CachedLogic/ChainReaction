@@ -141,6 +141,16 @@ public class ChainReaction {
         self.addChainable(particle)
     }
     
+    /**
+     
+     Adds compound reaction. This reaction is executed asynchronously, and finishes only when all of the particles finish executing.
+     
+     This method adds all of the `ChainReaction` objects particles and executes them asynchronously. This chainable element finishes after all of the added particles finish. On failure, `failureHandler` can return a `ChainableError.CompoundError`, which contains array of `ErrorType` elements. This array contains every error that occurred while executing this compound reaction.
+     
+     - parameters:
+        - ChainReaction: compoundReaction Compund reaction chain reaction object
+     */
+    
     // MARK: - Add Compound
     
     public func addCompound(compoundReaction: ChainReaction) {
