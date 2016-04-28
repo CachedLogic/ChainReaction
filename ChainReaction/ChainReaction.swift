@@ -33,9 +33,10 @@ public class ChainReaction {
             
             let dispatchGroup = dispatch_group_create()
             
-            for chainable in self.chainables {
+            for var chainable in self.chainables {
                 dispatch_group_enter(dispatchGroup)
                 
+                chainable.nextChainable = nil
                 chainable.activate({
                     dispatch_group_leave(dispatchGroup)
                 }, failureHandler: { (error) in
