@@ -12,9 +12,9 @@ import ChainReaction
 
 class ChainReactionTests: QuickSpec {
     
-    private var counter = 0
+    fileprivate var counter = 0
     
-    private func successfulTestMethod(completionHandler: ((NSError?) -> ())) {
+    fileprivate func successfulTestMethod(_ completionHandler: ((NSError?) -> ())) {
         print("\n\nSuccessful test method : \(counter)\n\n")
         
         counter += 1
@@ -22,7 +22,7 @@ class ChainReactionTests: QuickSpec {
         completionHandler(nil)
     }
 
-    private func successfulAsyncTestMethod(completionHandler: ((NSError?) -> ())) {
+    fileprivate func successfulAsyncTestMethod(_ completionHandler: ((NSError?) -> ())) {
         let randomValue = Double(random() % 10) / 10.0
         let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(randomValue * Double(NSEC_PER_SEC)))
 

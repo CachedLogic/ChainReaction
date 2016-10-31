@@ -9,55 +9,55 @@ import Foundation
 
 private protocol Chainable {
     var nextChainable: Chainable? { get set }
-    func activate(finishedHandler: () -> (), failureHandler: (ErrorType?) -> ())
+    func activate(_ finishedHandler: @escaping () -> (), failureHandler: @escaping (Error?) -> ())
 }
 
-enum ChainableError: ErrorType {
-    case CompoundError([ErrorType])
-    case RecurrenceError
+enum ChainableError: Error {
+    case compoundError([Error])
+    case recurrenceError
 }
 
-public class ChainReaction {
+open class ChainReaction {
     
-    private class Compound: Chainable {
+    fileprivate class Compound: Chainable {
         var nextChainable: Chainable?
         
-        private let chainables: [Chainable]
+        fileprivate let chainables: [Chainable]
         
         init(chainables: [Chainable]) {
             self.chainables = chainables
         }
         
-        func activate(finishedHandler: () -> (), failureHandler: (ErrorType?) -> ()) {
-            var errors = [ErrorType]()
+        func activate(_ finishedHandler: @escaping () -> (), failureHandler: @escaping (Error?) -> ()) {
+            var errors = [Error]()
             
-            let dispatchGroup = dispatch_group_create()
+            let dispatchGroup = DispatchGroup()
             
             for var chainable in self.chainables {
-                dispatch_group_enter(dispatchGroup)
+                dispatchGroup.enter()
                 
                 chainable.nextChainable = nil
                 chainable.activate({
-                    dispatch_group_leave(dispatchGroup)
+                    dispatchGroup.leave()
                 }, failureHandler: { (error) in
                     if error != nil {
                         errors.append(error!)
                     }
                     
-                    dispatch_group_leave(dispatchGroup)
+                    dispatchGroup.leave()
                 })
             }
             
-            dispatch_group_notify(dispatchGroup, dispatch_get_main_queue()) {
+            dispatchGroup.notify(queue: DispatchQueue.main) {
                 if errors.count > 0 {
-                    failureHandler(ChainableError.CompoundError(errors))
+                    failureHandler(ChainableError.compoundError(errors))
                 } else {
                     self.activateNext(finishedHandler, failureHandler: failureHandler)
                 }
             }
         }
         
-        private func activateNext(finishedHandler: () -> (), failureHandler: (ErrorType?) -> ()) {
+        fileprivate func activateNext(_ finishedHandler: @escaping () -> (), failureHandler: @escaping (Error?) -> ()) {
             guard let chainable = self.nextChainable else {
                 finishedHandler()
                 return
@@ -67,20 +67,20 @@ public class ChainReaction {
         }
     }
     
-    private class Particle: Chainable {
+    fileprivate class Particle: Chainable {
         var nextChainable: Chainable?
         
-        let activationBehaviour: ((ErrorType?) -> ()) -> ()
-        let failureConditions: ((ErrorType) -> (Bool))
+        let activationBehaviour: ((Error?) -> ()) -> ()
+        let failureConditions: ((Error) -> (Bool))
         
-        init(activationBehaviour: ((ErrorType?) -> ()) -> (), failureConditions: ((ErrorType) -> (Bool)), nextChainable: Chainable? = nil) {
+        init(activationBehaviour: @escaping ((Error?) -> ()) -> (), failureConditions: @escaping ((Error) -> (Bool)), nextChainable: Chainable? = nil) {
             self.activationBehaviour = activationBehaviour
             self.failureConditions = failureConditions
             
             self.nextChainable = nextChainable
         }
         
-        func activate(finishedHandler: () -> (), failureHandler: (ErrorType?) -> ()) {
+        func activate(_ finishedHandler: @escaping () -> (), failureHandler: @escaping (Error?) -> ()) {
             self.activationBehaviour() { (error) -> () in
                 if error == nil {
                     self.activateNext(finishedHandler, failureHandler: failureHandler)
@@ -94,7 +94,7 @@ public class ChainReaction {
             }
         }
         
-        private func activateNext(finishedHandler: () -> (), failureHandler: (ErrorType?) -> ()) {
+        fileprivate func activateNext(_ finishedHandler: @escaping () -> (), failureHandler: @escaping (Error?) -> ()) {
             guard let chainable = self.nextChainable else {
                 finishedHandler()
                 return
@@ -104,7 +104,7 @@ public class ChainReaction {
         }
     }
     
-    private var chainables = [Chainable]()
+    fileprivate var chainables = [Chainable]()
     
     public init() {
         
@@ -112,7 +112,7 @@ public class ChainReaction {
     
     // MARK: - Add Particle
     
-    private func addChainable(chainable: Chainable) {
+    fileprivate func addChainable(_ chainable: Chainable) {
         var lastChainable = self.chainables.last
         
         self.chainables.append(chainable)
@@ -130,7 +130,7 @@ public class ChainReaction {
         - ((ErrorType?) -> ()) -> (): activationBehaviour Main event method for the particle.
      */
     
-    public func addParticle(activationBehaviour: ((ErrorType?) -> ()) -> (), failureConditions: ((ErrorType) -> (Bool))? = nil) {
+    open func addParticle(_ activationBehaviour: @escaping ((Error?) -> ()) -> (), failureConditions: ((Error) -> (Bool))? = nil) {
         var failureConditions = failureConditions
         
         if failureConditions == nil {
@@ -154,7 +154,7 @@ public class ChainReaction {
     
     // MARK: - Add Compound
     
-    public func addCompound(compoundReaction: ChainReaction) {
+    open func addCompound(_ compoundReaction: ChainReaction) {
         let compound = Compound(chainables: compoundReaction.chainables)
         
         self.addChainable(compound)
@@ -173,7 +173,7 @@ public class ChainReaction {
         - (ErrorType?) -> (): failureHandler: Failure handler for whole chain reaction
     */
     
-    public func initiateReaction(finishedHandler: () -> (), failureHandler: (ErrorType?) -> ()) {
+    open func initiateReaction(_ finishedHandler: @escaping () -> (), failureHandler: @escaping (Error?) -> ()) {
         self.chainables.first?.activate(finishedHandler, failureHandler: failureHandler)
     }
 }
