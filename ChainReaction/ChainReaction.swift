@@ -20,6 +20,7 @@ enum ChainableError: Error {
 open class ChainReaction {
     
     fileprivate class Compound: Chainable {
+
         var nextChainable: Chainable?
         
         fileprivate let chainables: [Chainable]
@@ -27,8 +28,8 @@ open class ChainReaction {
         init(chainables: [Chainable]) {
             self.chainables = chainables
         }
-        
-        func activate(_ finishedHandler: @escaping () -> (), failureHandler: @escaping (Error?) -> ()) {
+
+        internal func activate(_ finishedHandler: @escaping () -> (), failureHandler: @escaping (Error?) -> ()) {
             var errors = [Error]()
             
             let dispatchGroup = DispatchGroup()
@@ -39,12 +40,12 @@ open class ChainReaction {
                 chainable.nextChainable = nil
                 chainable.activate({
                     dispatchGroup.leave()
-                }, failureHandler: { (error) in
-                    if error != nil {
-                        errors.append(error!)
-                    }
-                    
-                    dispatchGroup.leave()
+                    }, failureHandler: { (error) in
+                        if error != nil {
+                            errors.append(error!)
+                        }
+                        
+                        dispatchGroup.leave()
                 })
             }
             
@@ -68,19 +69,20 @@ open class ChainReaction {
     }
     
     fileprivate class Particle: Chainable {
+
         var nextChainable: Chainable?
         
-        let activationBehaviour: ((Error?) -> ()) -> ()
-        let failureConditions: ((Error) -> (Bool))
+        let activationBehaviour: (@escaping (Error?) -> ()) -> ()
+        let failureConditions: (Error) -> (Bool)
         
-        init(activationBehaviour: @escaping ((Error?) -> ()) -> (), failureConditions: @escaping ((Error) -> (Bool)), nextChainable: Chainable? = nil) {
+        init(activationBehaviour: @escaping (@escaping (Error?) -> ()) -> (), failureConditions: @escaping ((Error) -> (Bool)), nextChainable: Chainable? = nil) {
             self.activationBehaviour = activationBehaviour
             self.failureConditions = failureConditions
             
             self.nextChainable = nextChainable
         }
         
-        func activate(_ finishedHandler: @escaping () -> (), failureHandler: @escaping (Error?) -> ()) {
+        internal func activate(_ finishedHandler: @escaping () -> (), failureHandler: @escaping (Error?) -> ()) {
             self.activationBehaviour() { (error) -> () in
                 if error == nil {
                     self.activateNext(finishedHandler, failureHandler: failureHandler)
@@ -129,15 +131,18 @@ open class ChainReaction {
      - parameters:
         - ((ErrorType?) -> ()) -> (): activationBehaviour Main event method for the particle.
      */
+
+    open func addParticle(_ activationBehaviour: @escaping (@escaping (Error?) -> ()) -> ()) {
+        let failureConditions: (Error) -> (Bool) = { _ in return true }
+        
+        let particle = Particle(activationBehaviour: activationBehaviour, failureConditions: failureConditions)
+        
+        self.addChainable(particle)
+    }
+
     
-    open func addParticle(_ activationBehaviour: @escaping ((Error?) -> ()) -> (), failureConditions: ((Error) -> (Bool))? = nil) {
-        var failureConditions = failureConditions
-        
-        if failureConditions == nil {
-            failureConditions = { _ in return true }
-        }
-        
-        let particle = Particle(activationBehaviour: activationBehaviour, failureConditions: failureConditions!)
+    open func addParticle(_ activationBehaviour: @escaping (@escaping (Error?) -> ()) -> (), failureConditions: @escaping (Error) -> (Bool)) {
+        let particle = Particle(activationBehaviour: activationBehaviour, failureConditions: failureConditions)
         
         self.addChainable(particle)
     }
